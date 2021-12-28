@@ -34,8 +34,16 @@ class Wyksztalcenie(models.Model):
     class Meta:
         verbose_name = 'Education'
         verbose_name_plural = 'Education'
+    Higher = 'Higher'
+    Secondary = 'Secondary'
+    Basic = 'Basic'
+    CHOICES=(
+        (Higher, 'Higher'),
+        (Secondary, 'Secondary'),
+        (Basic, 'Basic')
+    )
 
-    typ = models.CharField("Type", max_length=200)
+    typ = models.CharField("Type", max_length=200, choices=CHOICES, default=Basic)
     opis = models.CharField("Description", max_length=200)
     data_uzyskania = models.DateTimeField("Obtaining date")
 
@@ -48,8 +56,15 @@ class Ubezpieczenie(models.Model):
         verbose_name = 'Insurances'
         verbose_name_plural = 'Insurances'
 
+    COMPULSORY  = 'compulsory'
+    VOLUNTARY = "voluntary"
+    CHOICES = (
+        (COMPULSORY, "Compulsory"),
+        (VOLUNTARY, "Voluntary")
+    )
+
     numer = models.CharField("Number", max_length=200)
-    rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200)
+    rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200, choices=CHOICES, default=VOLUNTARY)
     data_od = models.DateTimeField("From date")
     data_do = models.DateTimeField("To date")
 
@@ -69,7 +84,7 @@ class OcenaPracownika(models.Model):
     data_oceny = models.DateTimeField("Rating date")
 
     def __str__(self):
-        return f"Insurance: {self.id} (issurance_number: {self.numer}, valid_from: {self.data_od}, valid_to: {self.data_do})"
+        return f"Insurance: {self.id} (issurance_number: {self.ocena}, valid_from: {self.data_wydania}, valid_to: {self.data_oceny})"
 
 
 class KartaPracownika(models.Model):
@@ -92,9 +107,9 @@ class Pracownik(models.Model):
         verbose_name_plural = 'Employees'
 
     imie = models.CharField("First name", max_length=200)
-    drugie_imie = models.CharField("Secound name", max_length=200)
+    drugie_imie = models.CharField("Secound name", max_length=200, blank=True)
     nazwisko = models.CharField("Surname", max_length=200)
-    nazwisko_panienskie = models.CharField("Maiden name", max_length=200)
+    nazwisko_panienskie = models.CharField("Maiden name", max_length=200, blank=True)
     pesel = models.IntegerField("PESEL", default=0)
     numer_dowodu = models.CharField("Document ID", max_length=200)
     email = models.CharField("Email", max_length=200)
@@ -102,7 +117,7 @@ class Pracownik(models.Model):
     stan_cywilny = models.CharField("Marital status", max_length=200)
     ile_dzieci = models.IntegerField("How many kids?")
     niepelnosprawnosc = models.BooleanField("Is disabled?")
-    numer_konta_bankowego = models.IntegerField("Bank account number")
+    numer_konta_bankowego = models.DecimalField("Bank account number", max_digits=24, decimal_places=0)
     adres = models.ForeignKey(Adres, null=True, on_delete=SET_NULL, verbose_name="Employee Adress")
     stanowisko = models.ForeignKey(Stanowisko, null=True, on_delete=models.SET_NULL, verbose_name="Employee Position")
     wyksztalcenie = models.ForeignKey(
