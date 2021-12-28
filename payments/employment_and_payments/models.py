@@ -34,8 +34,16 @@ class Wyksztalcenie(models.Model):
     class Meta:
         verbose_name = 'Education'
         verbose_name_plural = 'Education'
+    Higher = 'Higher'
+    Secondary = 'Secondary'
+    Basic = 'Basic'
+    CHOICES=(
+        (Higher, 'Higher'),
+        (Secondary, 'Secondary'),
+        (Basic, 'Basic')
+    )
 
-    typ = models.CharField("Type", max_length=200)
+    typ = models.CharField("Type", max_length=200, choices=CHOICES, default=Basic)
     opis = models.CharField("Description", max_length=200)
     data_uzyskania = models.DateTimeField("Obtaining date")
 
@@ -48,8 +56,15 @@ class Ubezpieczenie(models.Model):
         verbose_name = 'Insurances'
         verbose_name_plural = 'Insurances'
 
+    COMPULSORY  = 'compulsory'
+    VOLUNTARY = "voluntary"
+    CHOICES = (
+        (COMPULSORY, "Compulsory"),
+        (VOLUNTARY, "Voluntary")
+    )
+
     numer = models.CharField("Number", max_length=200)
-    rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200)
+    rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200, choices=CHOICES, default=VOLUNTARY)
     data_od = models.DateTimeField("From date")
     data_do = models.DateTimeField("To date")
 
