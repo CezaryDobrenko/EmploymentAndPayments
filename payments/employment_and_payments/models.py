@@ -1,5 +1,10 @@
+import datetime
+from re import M
+from statistics import mode
+from tabnanny import verbose
 from django.db import models
 from django.db.models.deletion import CASCADE, SET_NULL
+from django.core.validators import MinValueValidator
 
 
 class Adres(models.Model):
@@ -56,26 +61,27 @@ class Ubezpieczenie(models.Model):
         verbose_name = 'Insurances'
         verbose_name_plural = 'Insurances'
 
-    COMPULSORY  = 'compulsory'
+    OBLIGATORY  = 'obligatory'
     VOLUNTARY = "voluntary"
     CHOICES = (
-        (COMPULSORY, "Compulsory"),
-        (VOLUNTARY, "Voluntary")
+        (OBLIGATORY, "obligatory"),
+        (VOLUNTARY, "voluntary")
     )
 
     numer = models.CharField("Number", max_length=200)
     rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200, choices=CHOICES, default=VOLUNTARY)
-    data_od = models.DateTimeField("From date")
-    data_do = models.DateTimeField("To date")
+    data_od = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
+    data_do = models.DateTimeField("To date", validators=[MinValueValidator(datetime.date.today)])
+    kwota_ubezpieczenia = models.BigIntegerField('insurance amount')
 
     def __str__(self):
-        return f"Insurance: {self.id} (issurance_number: {self.numer}, valid_from: {self.data_od}, valid_to: {self.data_do})"
+        return f"Insurance: {self.id} (issurance_number: {self.numer}, insurance_amount: {self.kwota_ubezpieczenia}, valid_to: {self.data_do})"
 
 
 class OcenaPracownika(models.Model):
     class Meta:
-        verbose_name = 'Ratrings'
-        verbose_name_plural = 'Ratrings'
+        verbose_name = 'Rating'
+        verbose_name_plural = 'Ratings'
 
     ocena = models.IntegerField("Rating", default=0)
     kryteria = models.TextField("Criteria")
@@ -105,16 +111,25 @@ class Pracownik(models.Model):
     class Meta:
         verbose_name = 'Employees'
         verbose_name_plural = 'Employees'
-
+    #stan cywilny
+    MARRIED = 'married'
+    SINGLE = 'single'
+    WIDOW = 'widow'
+    CHOICES=(
+        (MARRIED, 'married'),
+        (SINGLE, 'single'),
+        (WIDOW, 'widow')
+    )
+    
     imie = models.CharField("First name", max_length=200)
     drugie_imie = models.CharField("Secound name", max_length=200, blank=True)
     nazwisko = models.CharField("Surname", max_length=200)
     nazwisko_panienskie = models.CharField("Maiden name", max_length=200, blank=True)
-    pesel = models.IntegerField("PESEL", default=0)
+    pesel = models.DecimalField("PESEL", max_digits=11, decimal_places=0)
     numer_dowodu = models.CharField("Document ID", max_length=200)
     email = models.CharField("Email", max_length=200)
     numer_telefonu = models.IntegerField("Phone number")
-    stan_cywilny = models.CharField("Marital status", max_length=200)
+    stan_cywilny = models.CharField("Marital status", max_length=200, choices=CHOICES)
     ile_dzieci = models.IntegerField("How many kids?")
     niepelnosprawnosc = models.BooleanField("Is disabled?")
     numer_konta_bankowego = models.DecimalField("Bank account number", max_digits=24, decimal_places=0)
@@ -144,8 +159,8 @@ class Szkolenie(models.Model):
 
     nazwa = models.CharField("Name", max_length=200)
     opis = models.CharField("Description", max_length=200)
-    data_rozpoczecia = models.DateTimeField("From date")
-    data_zakonczenia = models.DateTimeField("To date")
+    data_rozpoczecia = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
+    data_zakonczenia = models.DateTimeField("To date", validators=[MinValueValidator(datetime.date.today)])
     ilosc_miejsc = models.IntegerField("How many places?", default=0)
     koszt = models.IntegerField("Cost", default=0)
     zrodlo_finansowania = models.CharField("Source of financing", max_length=200)
@@ -220,8 +235,8 @@ class Urlop(models.Model):
         verbose_name = 'Vacations'
         verbose_name_plural = 'Vacations'
 
-    data_rozpoczecia = models.DateTimeField("From date")
-    data_wydania = models.DateTimeField("Release date")
+    data_rozpoczecia = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
+    data_wydania = models.DateTimeField("Release date", validators=[MinValueValidator(datetime.date.today)])
     kwota = models.IntegerField("Price", default=0)
     rodzaj = models.CharField("Kind", max_length=200)
     pozostalo = models.IntegerField("Remaining", default=0)
@@ -236,7 +251,7 @@ class Harmonogram(models.Model):
         verbose_name = 'Harmonograms'
         verbose_name_plural = 'Harmonograms'
 
-    data = models.DateTimeField("Date")
+    data = models.DateTimeField("Date", validators=[MinValueValidator(datetime.date.today)])
     godziny = models.IntegerField("Hours", default=0)
     wartosc = models.CharField("Value", max_length=200)
     czy_urlop = models.BooleanField("Is vacation?")
@@ -252,7 +267,7 @@ class ZwolnienieLekarskie(models.Model):
         verbose_name_plural = 'Sick Leaves'
 
     opis = models.CharField("Description", max_length=200)
-    data_rozpoczecia = models.DateTimeField("From date")
+    data_rozpoczecia = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
     data_wydania = models.DateTimeField("Release date")
     kod_choroby = models.IntegerField("Sickness code", default=0)
     wystawiajacy = models.CharField("Signed By", max_length=200)
@@ -301,3 +316,16 @@ class Premia(models.Model):
 
     def __str__(self):
         return f"Bonus: {self.id}, contract: {self.umowa}, value: {self.wielkosc}, desc: {self.opis}"
+
+class SwiadectwoPracy(models.Model):
+    class Meta:
+        verbose_name = 'Work certificates'
+        verbose_name_plural = 'Work certificates'
+
+    pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.PROTECT)
+    data_zwolnienia = models.DateTimeField("Release date")
+    powod_zwolnienia = models.CharField('Release reason', max_length=1000)
+    ocena_pracownika = models.ForeignKey(OcenaPracownika, null=False, on_delete=models.PROTECT)
+
+    def __str__(self) -> str:
+        return f"Certificate: {self.id}, reason: {self.powod_zwolnienia}"
