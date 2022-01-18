@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
             name='SwiadectwoPracy',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('data_zwolnienia', models.DateTimeField(validators=[], verbose_name='Release date')),
+                ('data_zwolnienia', models.DateTimeField(verbose_name='Release date')),
                 ('powod_zwolnienia', models.CharField(max_length=1000, verbose_name='Release reason')),
                 ('ocena_pracownika', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='employment_and_payments.ocenapracownika')),
             ],

@@ -1,4 +1,6 @@
+from asyncio.windows_events import NULL
 import datetime
+from datetime import timezone
 from re import M
 from statistics import mode
 from tabnanny import verbose
@@ -27,7 +29,7 @@ class Stanowisko(models.Model):
         verbose_name_plural = 'Position'
 
     nazwa = models.CharField("Name", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     wymagania = models.CharField("Requirements", max_length=200)
     kod_dzialu = models.IntegerField("Departament code", default=0)
 
@@ -49,7 +51,7 @@ class Wyksztalcenie(models.Model):
     )
 
     typ = models.CharField("Type", max_length=200, choices=CHOICES, default=Basic)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     data_uzyskania = models.DateTimeField("Obtaining date")
 
     def __str__(self):
@@ -70,8 +72,8 @@ class Ubezpieczenie(models.Model):
 
     numer = models.CharField("Number", max_length=200)
     rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200, choices=CHOICES, default=VOLUNTARY)
-    data_od = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
-    data_do = models.DateTimeField("To date", validators=[MinValueValidator(datetime.date.today)])
+    data_od = models.DateTimeField("From date")
+    data_do = models.DateTimeField("To date")
     kwota_ubezpieczenia = models.BigIntegerField('insurance amount')
 
     def __str__(self):
@@ -85,7 +87,7 @@ class OcenaPracownika(models.Model):
 
     ocena = models.IntegerField("Rating", default=0)
     kryteria = models.TextField("Criteria")
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     data_wydania = models.DateTimeField("Release date")
     data_oceny = models.DateTimeField("Rating date")
 
@@ -99,7 +101,7 @@ class KartaPracownika(models.Model):
         verbose_name_plural = 'Employee Cards'
 
     identyfikator = models.CharField("Identificatior", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     uwagi = models.CharField("Addontation", max_length=200)
     data = models.DateTimeField("Date")
 
@@ -158,9 +160,9 @@ class Szkolenie(models.Model):
         verbose_name_plural = 'Courses'
 
     nazwa = models.CharField("Name", max_length=200)
-    opis = models.CharField("Description", max_length=200)
-    data_rozpoczecia = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
-    data_zakonczenia = models.DateTimeField("To date", validators=[MinValueValidator(datetime.date.today)])
+    opis = models.CharField("Description", max_length=200, blank=True)
+    data_rozpoczecia = models.DateTimeField("From date")
+    data_zakonczenia = models.DateTimeField("To date")
     ilosc_miejsc = models.IntegerField("How many places?", default=0)
     koszt = models.IntegerField("Cost", default=0)
     zrodlo_finansowania = models.CharField("Source of financing", max_length=200)
@@ -180,7 +182,7 @@ class PrzypisaniNaSzkolenie(models.Model):
 
     pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.CASCADE, verbose_name="Employee")
     szkolenie = models.ForeignKey(Szkolenie, null=False, on_delete=models.CASCADE, verbose_name="Course")
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     czy_aktywny = models.BooleanField("Is active?")
 
     def __str__(self):
@@ -206,7 +208,7 @@ class Nagrody(models.Model):
         verbose_name = 'Prices'
         verbose_name_plural = 'Prices'
 
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     kryteria = models.TextField("Criteria")
     pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.CASCADE, verbose_name="Employee")
 
@@ -220,7 +222,7 @@ class Zadania(models.Model):
         verbose_name_plural = 'Tasks'
 
     nazwa = models.CharField("Name", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     godzinowy_czas_trwania = models.IntegerField("Period count in hours", default=0)
     procentowy_udzial_w_zadaniu = models.IntegerField("Usage in percentage", default=0)
     ilu_pracownikow = models.IntegerField("How many employees", default=0)
@@ -235,8 +237,8 @@ class Urlop(models.Model):
         verbose_name = 'Vacations'
         verbose_name_plural = 'Vacations'
 
-    data_rozpoczecia = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
-    data_wydania = models.DateTimeField("Release date", validators=[MinValueValidator(datetime.date.today)])
+    data_rozpoczecia = models.DateTimeField("From date")
+    data_wydania = models.DateTimeField("Release date")
     kwota = models.IntegerField("Price", default=0)
     rodzaj = models.CharField("Kind", max_length=200)
     pozostalo = models.IntegerField("Remaining", default=0)
@@ -251,7 +253,7 @@ class Harmonogram(models.Model):
         verbose_name = 'Harmonograms'
         verbose_name_plural = 'Harmonograms'
 
-    data = models.DateTimeField("Date", validators=[MinValueValidator(datetime.date.today)])
+    data = models.DateTimeField("Date")
     godziny = models.IntegerField("Hours", default=0)
     wartosc = models.CharField("Value", max_length=200)
     czy_urlop = models.BooleanField("Is vacation?")
@@ -266,8 +268,8 @@ class ZwolnienieLekarskie(models.Model):
         verbose_name = 'Sick Leaves'
         verbose_name_plural = 'Sick Leaves'
 
-    opis = models.CharField("Description", max_length=200)
-    data_rozpoczecia = models.DateTimeField("From date", validators=[MinValueValidator(datetime.date.today)])
+    opis = models.CharField("Description", max_length=200, blank=True)
+    data_rozpoczecia = models.DateTimeField("From date")
     data_wydania = models.DateTimeField("Release date")
     kod_choroby = models.IntegerField("Sickness code", default=0)
     wystawiajacy = models.CharField("Signed By", max_length=200)
@@ -298,7 +300,7 @@ class Umowa(models.Model):
     data_zawarcia = models.DateTimeField("From date")
     data_rozwiazania = models.DateTimeField("To date")
     wynagrodzenie = models.IntegerField("Payment", default=0)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.CASCADE, verbose_name="Employee")
 
     def __str__(self):
@@ -310,7 +312,7 @@ class Premia(models.Model):
         verbose_name_plural = 'Bonuses'
         
     typ = models.CharField("Type", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     wielkosc = models.IntegerField("Value", default=0)
     umowa = models.ForeignKey(Umowa, null=False, on_delete=models.CASCADE, verbose_name="Contract")
 
@@ -322,10 +324,10 @@ class SwiadectwoPracy(models.Model):
         verbose_name = 'Work certificates'
         verbose_name_plural = 'Work certificates'
 
-    pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.PROTECT)
+    imie = models.CharField('Employee name', max_length=100, default='')
+    nazwisko = models.CharField('Employee last name', max_length=100, default='')
     data_zwolnienia = models.DateTimeField("Release date")
     powod_zwolnienia = models.CharField('Release reason', max_length=1000)
-    ocena_pracownika = models.ForeignKey(OcenaPracownika, null=False, on_delete=models.PROTECT)
 
     def __str__(self) -> str:
         return f"Certificate: {self.id}, reason: {self.powod_zwolnienia}"
