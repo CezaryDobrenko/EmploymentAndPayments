@@ -327,7 +327,7 @@ class SwiadectwoPracy(models.Model):
     imie = models.CharField('Employee name', max_length=100, default='')
     nazwisko = models.CharField('Employee last name', max_length=100, default='')
     data_zwolnienia = models.DateTimeField("Release date")
-    powod_zwolnienia = models.CharField('Release reason', max_length=1000)
+    ocena = models.CharField('Rating', max_length=1000)
 
     def __str__(self) -> str:
-        return f"Certificate: {self.id}, reason: {self.powod_zwolnienia}"
+        return f"Certificate: {self.id}, last_name: {self.nazwisko}, name: {self.imie}"
