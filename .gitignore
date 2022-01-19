@@ -1,0 +1,15 @@
+*.log
+*.pot
+*.pyc
+__pycache__
+*.bak
+*.py[cod] 
+*$py.class
+pip-log.txt
+pip-delete-this-directory.txt
+.vscode/* 
+!.vscode/settings.json 
+!.vscode/tasks.json 
+!.vscode/launch.json 
+!.vscode/extensions.json 
+.history
