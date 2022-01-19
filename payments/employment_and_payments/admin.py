@@ -18,6 +18,7 @@ from employment_and_payments.models import (
     KartaPracownika,
     Ubezpieczenie,
     Adres,
+    SwiadectwoPracy
 )
 
 class StanowiskoAdmin(admin.ModelAdmin):
@@ -74,6 +75,9 @@ class PracownikAdmin(admin.ModelAdmin):
 class PremiaAdmin(admin.ModelAdmin):
     pass
 
+class SwiadectwoPracyAdmin(admin.ModelAdmin):
+    pass
+
 admin.site.register(Stanowisko, StanowiskoAdmin)
 admin.site.register(OcenaPracownika, OcenaPracownikaAdmin)
 admin.site.register(Dokument, DokumentAdmin)
@@ -92,3 +96,4 @@ admin.site.register(Wyksztalcenie, WyksztalcenieAdmin)
 admin.site.register(PrzypisaniNaSzkolenie, PrzypisaniNaSzkolenieAdmin)
 admin.site.register(Pracownik, PracownikAdmin)
 admin.site.register(Premia, PremiaAdmin)
+admin.site.register(SwiadectwoPracy, SwiadectwoPracyAdmin)

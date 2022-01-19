@@ -1,5 +1,12 @@
+from asyncio.windows_events import NULL
+import datetime
+from datetime import timezone
+from re import M
+from statistics import mode
+from tabnanny import verbose
 from django.db import models
 from django.db.models.deletion import CASCADE, SET_NULL
+from django.core.validators import MinValueValidator
 
 
 class Adres(models.Model):
@@ -22,7 +29,7 @@ class Stanowisko(models.Model):
         verbose_name_plural = 'Position'
 
     nazwa = models.CharField("Name", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     wymagania = models.CharField("Requirements", max_length=200)
     kod_dzialu = models.IntegerField("Departament code", default=0)
 
@@ -34,9 +41,17 @@ class Wyksztalcenie(models.Model):
     class Meta:
         verbose_name = 'Education'
         verbose_name_plural = 'Education'
+    Higher = 'Higher'
+    Secondary = 'Secondary'
+    Basic = 'Basic'
+    CHOICES=(
+        (Higher, 'Higher'),
+        (Secondary, 'Secondary'),
+        (Basic, 'Basic')
+    )
 
-    typ = models.CharField("Type", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    typ = models.CharField("Type", max_length=200, choices=CHOICES, default=Basic)
+    opis = models.CharField("Description", max_length=200, blank=True)
     data_uzyskania = models.DateTimeField("Obtaining date")
 
     def __str__(self):
@@ -48,28 +63,36 @@ class Ubezpieczenie(models.Model):
         verbose_name = 'Insurances'
         verbose_name_plural = 'Insurances'
 
+    OBLIGATORY  = 'obligatory'
+    VOLUNTARY = "voluntary"
+    CHOICES = (
+        (OBLIGATORY, "obligatory"),
+        (VOLUNTARY, "voluntary")
+    )
+
     numer = models.CharField("Number", max_length=200)
-    rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200)
+    rodzaj_ubezpieczenia = models.CharField("Type of issurance", max_length=200, choices=CHOICES, default=VOLUNTARY)
     data_od = models.DateTimeField("From date")
     data_do = models.DateTimeField("To date")
+    kwota_ubezpieczenia = models.BigIntegerField('insurance amount')
 
     def __str__(self):
-        return f"Insurance: {self.id} (issurance_number: {self.numer}, valid_from: {self.data_od}, valid_to: {self.data_do})"
+        return f"Insurance: {self.id} (issurance_number: {self.numer}, insurance_amount: {self.kwota_ubezpieczenia}, valid_to: {self.data_do})"
 
 
 class OcenaPracownika(models.Model):
     class Meta:
-        verbose_name = 'Ratrings'
-        verbose_name_plural = 'Ratrings'
+        verbose_name = 'Rating'
+        verbose_name_plural = 'Ratings'
 
     ocena = models.IntegerField("Rating", default=0)
     kryteria = models.TextField("Criteria")
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     data_wydania = models.DateTimeField("Release date")
     data_oceny = models.DateTimeField("Rating date")
 
     def __str__(self):
-        return f"Insurance: {self.id} (issurance_number: {self.numer}, valid_from: {self.data_od}, valid_to: {self.data_do})"
+        return f"Insurance: {self.id} (issurance_number: {self.ocena}, valid_from: {self.data_wydania}, valid_to: {self.data_oceny})"
 
 
 class KartaPracownika(models.Model):
@@ -78,7 +101,7 @@ class KartaPracownika(models.Model):
         verbose_name_plural = 'Employee Cards'
 
     identyfikator = models.CharField("Identificatior", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     uwagi = models.CharField("Addontation", max_length=200)
     data = models.DateTimeField("Date")
 
@@ -90,19 +113,28 @@ class Pracownik(models.Model):
     class Meta:
         verbose_name = 'Employees'
         verbose_name_plural = 'Employees'
-
+    #stan cywilny
+    MARRIED = 'married'
+    SINGLE = 'single'
+    WIDOW = 'widow'
+    CHOICES=(
+        (MARRIED, 'married'),
+        (SINGLE, 'single'),
+        (WIDOW, 'widow')
+    )
+    
     imie = models.CharField("First name", max_length=200)
-    drugie_imie = models.CharField("Secound name", max_length=200)
+    drugie_imie = models.CharField("Secound name", max_length=200, blank=True)
     nazwisko = models.CharField("Surname", max_length=200)
-    nazwisko_panienskie = models.CharField("Maiden name", max_length=200)
-    pesel = models.IntegerField("PESEL", default=0)
+    nazwisko_panienskie = models.CharField("Maiden name", max_length=200, blank=True)
+    pesel = models.DecimalField("PESEL", max_digits=11, decimal_places=0)
     numer_dowodu = models.CharField("Document ID", max_length=200)
     email = models.CharField("Email", max_length=200)
     numer_telefonu = models.IntegerField("Phone number")
-    stan_cywilny = models.CharField("Marital status", max_length=200)
+    stan_cywilny = models.CharField("Marital status", max_length=200, choices=CHOICES)
     ile_dzieci = models.IntegerField("How many kids?")
     niepelnosprawnosc = models.BooleanField("Is disabled?")
-    numer_konta_bankowego = models.IntegerField("Bank account number")
+    numer_konta_bankowego = models.DecimalField("Bank account number", max_digits=24, decimal_places=0)
     adres = models.ForeignKey(Adres, null=True, on_delete=SET_NULL, verbose_name="Employee Adress")
     stanowisko = models.ForeignKey(Stanowisko, null=True, on_delete=models.SET_NULL, verbose_name="Employee Position")
     wyksztalcenie = models.ForeignKey(
@@ -128,7 +160,7 @@ class Szkolenie(models.Model):
         verbose_name_plural = 'Courses'
 
     nazwa = models.CharField("Name", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     data_rozpoczecia = models.DateTimeField("From date")
     data_zakonczenia = models.DateTimeField("To date")
     ilosc_miejsc = models.IntegerField("How many places?", default=0)
@@ -150,7 +182,7 @@ class PrzypisaniNaSzkolenie(models.Model):
 
     pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.CASCADE, verbose_name="Employee")
     szkolenie = models.ForeignKey(Szkolenie, null=False, on_delete=models.CASCADE, verbose_name="Course")
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     czy_aktywny = models.BooleanField("Is active?")
 
     def __str__(self):
@@ -176,7 +208,7 @@ class Nagrody(models.Model):
         verbose_name = 'Prices'
         verbose_name_plural = 'Prices'
 
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     kryteria = models.TextField("Criteria")
     pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.CASCADE, verbose_name="Employee")
 
@@ -190,7 +222,7 @@ class Zadania(models.Model):
         verbose_name_plural = 'Tasks'
 
     nazwa = models.CharField("Name", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     godzinowy_czas_trwania = models.IntegerField("Period count in hours", default=0)
     procentowy_udzial_w_zadaniu = models.IntegerField("Usage in percentage", default=0)
     ilu_pracownikow = models.IntegerField("How many employees", default=0)
@@ -236,7 +268,7 @@ class ZwolnienieLekarskie(models.Model):
         verbose_name = 'Sick Leaves'
         verbose_name_plural = 'Sick Leaves'
 
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     data_rozpoczecia = models.DateTimeField("From date")
     data_wydania = models.DateTimeField("Release date")
     kod_choroby = models.IntegerField("Sickness code", default=0)
@@ -268,7 +300,7 @@ class Umowa(models.Model):
     data_zawarcia = models.DateTimeField("From date")
     data_rozwiazania = models.DateTimeField("To date")
     wynagrodzenie = models.IntegerField("Payment", default=0)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     pracownik = models.ForeignKey(Pracownik, null=False, on_delete=models.CASCADE, verbose_name="Employee")
 
     def __str__(self):
@@ -280,9 +312,22 @@ class Premia(models.Model):
         verbose_name_plural = 'Bonuses'
         
     typ = models.CharField("Type", max_length=200)
-    opis = models.CharField("Description", max_length=200)
+    opis = models.CharField("Description", max_length=200, blank=True)
     wielkosc = models.IntegerField("Value", default=0)
     umowa = models.ForeignKey(Umowa, null=False, on_delete=models.CASCADE, verbose_name="Contract")
 
     def __str__(self):
         return f"Bonus: {self.id}, contract: {self.umowa}, value: {self.wielkosc}, desc: {self.opis}"
+
+class SwiadectwoPracy(models.Model):
+    class Meta:
+        verbose_name = 'Work certificates'
+        verbose_name_plural = 'Work certificates'
+
+    imie = models.CharField('Employee name', max_length=100, default='')
+    nazwisko = models.CharField('Employee last name', max_length=100, default='')
+    data_zwolnienia = models.DateTimeField("Release date")
+    ocena = models.CharField('Rating', max_length=1000)
+
+    def __str__(self) -> str:
+        return f"Certificate: {self.id}, last_name: {self.nazwisko}, name: {self.imie}"
